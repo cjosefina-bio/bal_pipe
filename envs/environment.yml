@@ -1,0 +1,14 @@
+name: bal_pipe
+
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+
+dependencies:
+  - python=3.12
+  - snakemake=7.32.4
+  - mamba
+  - pandas
+  - pyyaml
+  - graphviz

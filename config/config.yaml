@@ -1,0 +1,111 @@
+# ---------------------------------------------------
+# BAL de novo genome assembly - annotation pipeline
+# ---------------------------------------------------
+
+# Project
+
+project:
+  name: bal_pipe
+  organism_group: "Lactic Acid Bacteria"
+  sequencing_type: "Illumina paired-end"
+
+# Samples
+# --------------------------------------------------
+samples: # para prueba lo hago con lecturas que ya tengo
+  CRL656:
+    r1: "data/raw/CRL656_R1.fastq"
+    r2: "data/raw/CRL656_R2.fastq"
+
+# General resources
+# --------------------------------------------------
+
+resources:
+  threads: 8
+  memory_gb: 16
+
+# Authomatic generation of DAG
+# --------------------------------------------------
+
+00_workflow_dag:
+  dag_dir: "visual"
+  log_dir: "logs/00_workflow_dag"
+  final_target: "final_report" # tengo que ver bien que es esto
+
+# 01 - Quality control 
+# --------------------------------------------------
+
+01_quality_control:
+  fastqc:
+    output_dir: "results/01_quality_control/fastqc"
+    log_dir: "logs/01_quality_control/fastqc"
+    threads: 4
+
+  multiqc:
+    output_dir: "results/01_quality_control/multiqc"
+    log_dir: "logs/01_quality_control/multiqc"
+    threads: 1
+
+# 02 - Preprocessing
+# ---------------------------------------------------
+
+02_preprocessing:
+  fastp:
+    output_dir: "results/02_preprocessing/fastp"
+    log_dir: "logs/02_preprocessing/fastp"
+    threads: 4
+  
+  trimming:
+    detect_adapter_for_pe: true
+    cut_tail: true
+    cut_window_size: 4
+    cut_mean_quality: 20
+    length_required: 120
+    trim_poly_x: true
+    trim_poly_g: true
+
+  subsampling:
+    output_dir: "results/02_preprocessing/subsampled"
+    log_dir: "logs/02_preprocessing/subsampled"
+    fraction: 0.5
+    seed: 42
+
+# 03 - De novo assembly
+# --------------------------------------------------
+
+03_assembly:
+  spades:
+    output_dir: "results/03_assembly/spades"
+    log_dir: "logs/03_assembly/spades"
+    threads: 4
+    memory_gb: 8
+
+    careful: true
+    isolate: false
+    cov_cutoff: 5
+
+# 04 - Assembly quality
+# --------------------------------------------------
+
+04_assembly_quality:
+  quast:
+    output_dir: "results/04_assembly_quality/quast"
+    log_dir: "logs/04_assembly_quality/quast"
+    threads: 4
+    memory_gb: 8
+    docker_image: "staphb/quast:5.2.0"
+    platform: "linux/amd64"
+
+# 05 - Annotation
+# --------------------------------------------------
+
+05_annotation:
+  prokka:
+    output_dir: "results/05_annotation/prokka"
+    log_dir: "logs/05_annotation/prokka"
+    threads: 4
+    docker_image: "staphb/prokka:latest"
+    platform: "linux/amd64"
+
+    kingdom: "Bacteria"
+    genus: "Lactobacillus"
+    usegenus: true

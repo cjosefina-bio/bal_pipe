@@ -1,0 +1,10 @@
+name: quality_control
+
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+
+dependencies:
+  - fastqc=0.12.1
+  - multiqc=1.31
