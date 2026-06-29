@@ -109,3 +109,17 @@ resources:
     kingdom: "Bacteria"
     genus: "Lactobacillus"
     usegenus: true
+
+# 06 - Assembly summary
+# --------------------------------------------------
+
+06_assembly_summary:
+  output_dir: "results/06_assembly_summary"
+  log_dir: "logs/06_assembly_summary"
+  
+# 07 - Annotation summary
+# --------------------------------------------------
+
+07_annotation_summary:
+  output_dir: "results/07_annotation_summary"
+  log_dir: "logs/07_annotation_summary"
