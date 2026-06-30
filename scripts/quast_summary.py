@@ -1,46 +1,74 @@
-import pandas as pd
+#!/usr/bin/env python3
+
+import argparse
 from pathlib import Path
+import pandas as pd
 
-metrics = {
-    "# contigs": "contigs",
-    "Largest contig": "largest_contig",
-    "Total length": "total_length",
-    "GC (%)": "gc_percent",
-    "N50": "n50",
-    "N90": "n90",
-    "auN": "aun",
-    "L50": "l50",
-    "L90": "l90",
-    "N's per 100 kbp": "n_per_100kbp"
-}
 
-rows = []
+def main():
 
-for report in snakemake.input:
-    report = Path(report)
-    sample = report.parent.name
+    parser = argparse.ArgumentParser(
+        description="Generate a summary table from QUAST reports."
+    )
 
-    df = pd.read_csv(report, sep="\t", header=None, names=["metric", "value"])
+    parser.add_argument(
+        "-i", "--input",
+        required=True,
+        help="TXT file with columns: sample and report"
+    )
 
-    row = {"sample": sample}
+    parser.add_argument(
+        "-o", "--output",
+        required=True,
+        help="Output summary TSV file"
+    )
 
-    for quast_name, column_name in metrics.items():
-        value = df.loc[df["metric"] == quast_name, "value"]
+    args = parser.parse_args()
 
-        if len(value) > 0:
-            row[column_name] = value.iloc[0]
-        else:
-            row[column_name] = None
+    reports = pd.read_csv(args.input, sep="\t")
 
-    rows.append(row)
+    if not {"sample", "report"}.issubset(reports.columns):
+        raise ValueError(
+            "Input file must contain the columns: sample and report"
+        )
 
-summary = pd.DataFrame(rows)
+    rows = []
 
-for column in summary.columns:
-    if column != "sample":
-        summary[column] = pd.to_numeric(summary[column], errors="coerce")
+    for _, row in reports.iterrows():
 
-output = Path(snakemake.output[0])
-output.parent.mkdir(parents=True, exist_ok=True)
+        sample = row["sample"]
+        report_file = row["report"]
 
-summary.to_csv(output, sep="\t", index=False)
+        quast = pd.read_csv(
+            report_file,
+            sep="\t",
+            header=None,
+            names=["metric", "value"]
+        )
+
+        metrics = dict(zip(quast["metric"], quast["value"]))
+
+        rows.append({
+            "sample": sample,
+            "contigs": metrics.get("# contigs"),
+            "largest_contig": metrics.get("Largest contig"),
+            "total_length": metrics.get("Total length"),
+            "gc_percent": metrics.get("GC (%)"),
+            "n50": metrics.get("N50"),
+            "n90": metrics.get("N90"),
+            "aun": metrics.get("auN"),
+            "l50": metrics.get("L50"),
+            "l90": metrics.get("L90"),
+            "n_per_100kbp": metrics.get("N's per 100 kbp"),
+        })
+
+    summary = pd.DataFrame(rows)
+
+    output = Path(args.output)
+    output.parent.mkdir(parents=True, exist_ok=True)
+
+    summary.to_csv(output, sep="\t", index=False)
+
+
+if __name__ == "__main__":
+    main()

@@ -1,48 +1,73 @@
-import pandas as pd
+#!/usr/bin/env python3
+
+import argparse
 from pathlib import Path
+import pandas as pd
 
-rows = []
 
-for report in snakemake.input:
-    report = Path(report)
-    sample = report.parent.name
+def main():
 
-    df = pd.read_csv(report, sep="\t")
-
-    counts = df["ftype"].value_counts()
-
-    hypothetical_proteins = (
-        df["product"]
-        .fillna("")
-        .str.lower()
-        .eq("hypothetical protein")
-        .sum()
+    parser = argparse.ArgumentParser(
+        description="Generate a summary table from Prokka TSV files."
     )
 
-    cds_count = counts.get("CDS", 0)
+    parser.add_argument(
+        "-i", "--input",
+        required=True,
+        help="TXT file with columns: sample and report"
+    )
 
-    hypothetical_percent = round(
-        hypothetical_proteins / cds_count * 100,
-        2
-    ) if cds_count > 0 else 0
+    parser.add_argument(
+        "-o", "--output",
+        required=True,
+        help="Output summary TSV file"
+    )
 
-    row = {
-        "sample": sample,
-        "CDS": cds_count,
-        "tRNA": counts.get("tRNA", 0),
-        "rRNA": counts.get("rRNA", 0),
-        "tmRNA": counts.get("tmRNA", 0),
-        "misc_RNA": counts.get("misc_RNA", 0),
-        "hypothetical_proteins": hypothetical_proteins,
-        "hypothetical_percent": hypothetical_percent,
-        "total_features": len(df)
-    }
+    args = parser.parse_args()
 
-    rows.append(row)
+    reports = pd.read_csv(args.input, sep="\t")
 
-summary = pd.DataFrame(rows)
+    if not {"sample", "report"}.issubset(reports.columns):
+        raise ValueError(
+            "Input file must contain the columns: sample and report"
+        )
 
-output = Path(snakemake.output[0])
-output.parent.mkdir(parents=True, exist_ok=True)
+    rows = []
 
-summary.to_csv(output, sep="\t", index=False)
+    for _, row in reports.iterrows():
+
+        sample = row["sample"]
+        report_file = row["report"]
+
+        prokka = pd.read_csv(report_file, sep="\t")
+
+        feature_counts = prokka["ftype"].value_counts().to_dict()
+
+        hypothetical_proteins = (
+            prokka["product"]
+            .fillna("")
+            .str.lower()
+            .eq("hypothetical protein")
+            .sum()
+        )
+
+        rows.append({
+            "sample": sample,
+            "total_features": len(prokka),
+            "cds": feature_counts.get("CDS", 0),
+            "trna": feature_counts.get("tRNA", 0),
+            "rrna": feature_counts.get("rRNA", 0),
+            "tmrna": feature_counts.get("tmRNA", 0),
+            "hypothetical_proteins": hypothetical_proteins,
+        })
+
+    summary = pd.DataFrame(rows)
+
+    output = Path(args.output)
+    output.parent.mkdir(parents=True, exist_ok=True)
+
+    summary.to_csv(output, sep="\t", index=False)
+
+
+if __name__ == "__main__":
+    main()
