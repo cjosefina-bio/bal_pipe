@@ -1,38 +1,44 @@
-# ---------------------------------------------------
-# BAL de novo genome assembly - annotation pipeline
-# ---------------------------------------------------
+# ------------------------------------------------- #
+# BAL de novo genome assembly - annotation pipeline #
+# ------------------------------------------------- #
 
+# ---------------------------------------------------
 # Project
+# ---------------------------------------------------
 
 project:
   name: bal_pipe
   organism_group: "Lactic Acid Bacteria"
   sequencing_type: "Illumina paired-end"
 
+# ---------------------------------------------------
 # Samples
-# --------------------------------------------------
+# ---------------------------------------------------
 samples: # para prueba lo hago con lecturas que ya tengo
   CRL656:
     r1: "data/raw/CRL656_R1.fastq"
     r2: "data/raw/CRL656_R2.fastq"
 
+# ---------------------------------------------------
 # General resources
-# --------------------------------------------------
+# ---------------------------------------------------
 
 resources:
   threads: 8
   memory_gb: 16
 
+# ---------------------------------------------------
 # Authomatic generation of DAG
-# --------------------------------------------------
+# ---------------------------------------------------
 
 00_workflow_dag:
   dag_dir: "visual"
   log_dir: "logs/00_workflow_dag"
   final_target: "final_report" # tengo que ver bien que es esto
 
+# ---------------------------------------------------
 # 01 - Quality control 
-# --------------------------------------------------
+# ---------------------------------------------------
 
 01_quality_control:
   fastqc:
@@ -45,6 +51,7 @@ resources:
     log_dir: "logs/01_quality_control/multiqc"
     threads: 1
 
+# ---------------------------------------------------
 # 02 - Preprocessing
 # ---------------------------------------------------
 
@@ -69,13 +76,30 @@ resources:
     fraction: 0.5
     seed: 42
 
-# 03 - De novo assembly
+# --------------------------------------------------
+# 03 - Taxonomic classification
+# --------------------------------------------------  
+
+03_taxonomic_classification:
+  kraken2:
+    output_dir: "results/03_taxonomic_classification/kraken2"
+    log_dir: "logs/03_taxonomic_classification/kraken2"
+    threads: 4
+
+    database: "databases/kraken2_db"
+
+    download_db: false
+    db_url: "https://genome-idx.s3.amazonaws.com/kraken/k2_standard_08gb_20250402.tar.gz"
+    db_archive: "databases/k2_standard_08gb_20250402.tar.gz"
+
+# --------------------------------------------------
+# 04 - De novo assembly
 # --------------------------------------------------
 
-03_assembly:
+04_assembly:
   spades:
-    output_dir: "results/03_assembly/spades"
-    log_dir: "logs/03_assembly/spades"
+    output_dir: "results/04_assembly/spades"
+    log_dir: "logs/04_assembly/spades"
     threads: 4
     memory_gb: 8
 
@@ -83,25 +107,27 @@ resources:
     isolate: false
     cov_cutoff: 5
 
-# 04 - Assembly quality
+# --------------------------------------------------
+# 05 - Assembly quality
 # --------------------------------------------------
 
-04_assembly_quality:
+05_assembly_quality:
   quast:
-    output_dir: "results/04_assembly_quality/quast"
-    log_dir: "logs/04_assembly_quality/quast"
+    output_dir: "results/05_assembly_quality/quast"
+    log_dir: "logs/05_assembly_quality/quast"
     threads: 4
     memory_gb: 8
     docker_image: "staphb/quast:5.2.0"
     platform: "linux/amd64"
 
-# 05 - Annotation
+# --------------------------------------------------
+# 06 - Annotation
 # --------------------------------------------------
 
-05_annotation:
+06_annotation:
   prokka:
-    output_dir: "results/05_annotation/prokka"
-    log_dir: "logs/05_annotation/prokka"
+    output_dir: "results/06_annotation/prokka"
+    log_dir: "logs/06_annotation/prokka"
     threads: 4
     docker_image: "staphb/prokka:latest"
     platform: "linux/amd64"
@@ -110,16 +136,20 @@ resources:
     genus: "Lactobacillus"
     usegenus: true
 
-# 06 - Assembly summary
+# --------------------------------------------------
+# 07 - Assembly summary
 # --------------------------------------------------
 
-06_assembly_summary:
-  output_dir: "results/06_assembly_summary"
-  log_dir: "logs/06_assembly_summary"
-  
-# 07 - Annotation summary
+07_assembly_summary:
+  reports_file: "results/07_assembly_summary/quast_reports.txt"  
+  output_dir: "results/07_assembly_summary"
+  log_dir: "logs/07_assembly_summary"
+
+# --------------------------------------------------
+# 08 - Annotation summary
 # --------------------------------------------------
 
-07_annotation_summary:
-  output_dir: "results/07_annotation_summary"
-  log_dir: "logs/07_annotation_summary"
+08_annotation_summary:
+  reports_file: "results/08_annotation_summary/prokka_reports.txt"  
+  output_dir: "results/08_annotation_summary"
+  log_dir: "logs/08_annotation_summary"
