@@ -40,7 +40,8 @@ rule r01_02_raw_multiqc:
             sample=SAMPLES
         )
     output:
-        html = config["01_quality_control"]["multiqc"]["output_dir"] + "/multiqc_report.html"
+        html = config["01_quality_control"]["multiqc"]["output_dir"] + "/multiqc_report.html",
+        done = config["01_quality_control"]["multiqc"]["output_dir"] + "/.done/raw_multiqc.done"
     log:
         config["01_quality_control"]["multiqc"]["log_dir"] + "/multiqc.log"
     conda:
@@ -59,4 +60,6 @@ rule r01_02_raw_multiqc:
           --outdir {params.outdir} \
           --force \
           > {log} 2>&1
+
+        touch {output.done}
         """

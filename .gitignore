@@ -21,6 +21,7 @@ __pycache__/
 
 # Results
 results/
+results_backup/
 
 # Temporary files
 tmp/

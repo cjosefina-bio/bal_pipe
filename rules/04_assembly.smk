@@ -4,8 +4,12 @@
 
 rule r04_01_spades:
     input:
-        r1 = config["02_preprocessing"]["fastp"]["output_dir"] + "/{sample}_R1.trimmed.fastq.gz",
-        r2 = config["02_preprocessing"]["fastp"]["output_dir"] + "/{sample}_R2.trimmed.fastq.gz"
+        r1 = config["02_preprocessing"]["fastp"]["output_dir"] + "/{sample}/{sample}_R1.trimmed.fastq.gz",
+        r2 = config["02_preprocessing"]["fastp"]["output_dir"] + "/{sample}/{sample}_R2.trimmed.fastq.gz",
+        # SPAdes se ejecuta después de completar el control de calidad de las lecturas procesadas
+        trimmed_multiqc_done = config["02_preprocessing"]["multiqc"]["output_dir"] + "/.done/trimmed_multiqc.done",
+        # Clasificación taxonómica con Kraken2 completada
+        kraken2_done= config["03_taxonomic_classification"]["kraken2"]["output_dir"] + "/.done/{sample}.kraken2.done"
 
     output:
         contigs = config["04_assembly"]["spades"]["output_dir"] + "/{sample}/contigs.fasta",

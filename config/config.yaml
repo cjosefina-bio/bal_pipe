@@ -12,14 +12,6 @@ project:
   sequencing_type: "Illumina paired-end"
 
 # ---------------------------------------------------
-# Samples
-# ---------------------------------------------------
-samples: # para prueba lo hago con lecturas que ya tengo
-  CRL656:
-    r1: "data/raw/CRL656_R1.fastq"
-    r2: "data/raw/CRL656_R2.fastq"
-
-# ---------------------------------------------------
 # General resources
 # ---------------------------------------------------
 
@@ -28,13 +20,37 @@ resources:
   memory_gb: 16
 
 # ---------------------------------------------------
-# Authomatic generation of DAG
+# Samples
+# ---------------------------------------------------
+samples: 
+  LD_01:
+    r1: "data/raw/LD_01_R1.fastq"
+    r2: "data/raw/LD_01_R2.fastq"
+
+  LR_02:
+    r1: "data/raw/LR_02_R1.fastq"
+    r2: "data/raw/LR_02_R2.fastq"
+
+  LA_03:
+    r1: "data/raw/LA_03_R1.fastq"
+    r2: "data/raw/LA_03_R2.fastq"
+
+  LH_04:
+    r1: "data/raw/LH_04_R1.fastq"
+    r2: "data/raw/LH_04_R2.fastq"    
+
+  LB_05:
+    r1: "data/raw/LB_05_R1.fastq"
+    r2: "data/raw/LB_05_R2.fastq"
+
+# ---------------------------------------------------
+# 00 - Workflow DAG
 # ---------------------------------------------------
 
 00_workflow_dag:
   dag_dir: "visual"
   log_dir: "logs/00_workflow_dag"
-  final_target: "final_report" # tengo que ver bien que es esto
+  final_target: "all"
 
 # ---------------------------------------------------
 # 01 - Quality control 
@@ -70,11 +86,15 @@ resources:
     trim_poly_x: true
     trim_poly_g: true
 
-  subsampling:
-    output_dir: "results/02_preprocessing/subsampled"
-    log_dir: "logs/02_preprocessing/subsampled"
-    fraction: 0.5
-    seed: 42
+  fastqc:
+    output_dir: "results/02_preprocessing/fastqc"
+    log_dir: "logs/02_preprocessing/fastqc"
+    threads: 4
+  
+  multiqc:
+    output_dir: "results/02_preprocessing/multiqc"
+    log_dir: "logs/02_preprocessing/multiqc"
+    threads: 1
 
 # --------------------------------------------------
 # 03 - Taxonomic classification
@@ -153,3 +173,26 @@ resources:
   reports_file: "results/08_annotation_summary/prokka_reports.txt"  
   output_dir: "results/08_annotation_summary"
   log_dir: "logs/08_annotation_summary"
+
+# --------------------------------------------------
+# 09 - Genomic visualization
+# --------------------------------------------------
+
+09_genomic_visualization:
+  circos:
+    output_dir: "results/09_genomic_visualization/circos"
+    log_dir: "logs/09_genomic_visualization/circos"
+    conf: "resources/circos/circos.conf"
+
+    docker_image: "staphb/circos:0.69.9"
+    platform: "linux/amd64"
+    threads: 1
+
+    # Contig selection
+    min_contig_length: 10000
+    max_contigs: 50
+
+    # GC content calculation
+    gc_window_size: 5000
+    gc_step_size: 1000
+  

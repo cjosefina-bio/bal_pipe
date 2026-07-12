@@ -12,6 +12,8 @@ mkdir -p \
     data/raw \
     databases \
     resources \
+    results \
+    logs \
     visual
 
 echo "Project basic structure initialized."

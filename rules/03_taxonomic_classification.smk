@@ -45,8 +45,8 @@ rule r03_00_download_kraken2_db:
 
 rule r03_01_kraken2:
     input:
-        r1 = config["02_preprocessing"]["fastp"]["output_dir"] + "/{sample}_R1.trimmed.fastq.gz",
-        r2 = config["02_preprocessing"]["fastp"]["output_dir"] + "/{sample}_R2.trimmed.fastq.gz",
+        r1 = config["02_preprocessing"]["fastp"]["output_dir"] + "/{sample}/{sample}_R1.trimmed.fastq.gz",
+        r2 = config["02_preprocessing"]["fastp"]["output_dir"] + "/{sample}/{sample}_R2.trimmed.fastq.gz",
         db_done = get_kraken2_db_input
 
     output:
