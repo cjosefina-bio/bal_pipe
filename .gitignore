@@ -23,6 +23,9 @@ __pycache__/
 results/
 results_backup/
 
+# Visual
+visual/*
+
 # Temporary files
 tmp/
 temp/
