@@ -33,6 +33,9 @@ temp/
 # Databases
 databases/
 
+# Original data
+data/original/
+
 # Raw sequencing data
 data/raw/
 

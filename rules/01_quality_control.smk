@@ -13,14 +13,15 @@ rule r01_01_raw_fastqc:
     conda:
         "../envs/01_quality_control.yml"
     params:
-        outdir = config["01_quality_control"]["fastqc"]["output_dir"],
+        outdir = config["01_quality_control"]["fastqc"]["output_dir"] + "/{sample}",
+        done_dir = config["01_quality_control"]["fastqc"]["output_dir"] + "/.done",
         logdir = config["01_quality_control"]["fastqc"]["log_dir"],
         threads = config["01_quality_control"]["fastqc"]["threads"]
 
     shell:
         """
         mkdir -p {params.outdir}
-        mkdir -p {params.outdir}/.done
+        mkdir -p {params.done_dir}
         mkdir -p {params.logdir}
 
         fastqc \
@@ -49,10 +50,12 @@ rule r01_02_raw_multiqc:
     params:
         fastqc_dir = config["01_quality_control"]["fastqc"]["output_dir"],
         outdir = config["01_quality_control"]["multiqc"]["output_dir"],
+        done_dir = config["01_quality_control"]["multiqc"]["output_dir"] + "/.done",
         logdir = config["01_quality_control"]["multiqc"]["log_dir"]
     shell:
         """
         mkdir -p {params.outdir}
+        mkdir -p {params.done_dir}
         mkdir -p {params.logdir}
 
         multiqc \
